@@ -167,6 +167,7 @@ void TebLocalPlannerROS::initialize(std::string name, tf::TransformListener* tf,
 
     // setup callback for my custom obstacles
     human_obst_sub_ = nh.subscribe("humanObstacles", 1, &TebLocalPlannerROS::humanObstacleCB, this);
+
     // setup callback for custom via-points
     via_points_sub_ = nh.subscribe("via_points", 1, &TebLocalPlannerROS::customViaPointsCB, this);
     
@@ -600,22 +601,22 @@ void TebLocalPlannerROS::updateObstacleContainerWithHumanObstacles()
       obstacle_to_map_eig.setIdentity();
     }
     double_t threshold = 10;
-    for (size_t i=0; i<human_obstacle_msg_.obstacles.size(); ++i)
+    for (size_t i=0; i<human_obstacle_msg_.obstacles.size(); ++i) // Iterate through all human messages
     {
       Eigen::Vector2d pos(human_obstacle_msg_.obstacles.at(i).polygon.points.front().x,
                           human_obstacle_msg_.obstacles.at(i).polygon.points.front().y);
 
-      for (size_t j=0; j<obstacles_.size(); ++j)
+      for (size_t j=0; j<obstacles_.size(); ++j) //iterate through all detected obstacle
       {
-        if(obstacles_[j]->checkCollision(pos, threshold))
+        if(obstacles_[j]->checkCollision(pos, threshold))// If obstacle is close to some polygon
         {
           // ROS_INFO("Position: (%f, %f)",human_obstacle_msg_.obstacles.at(i).polygon.points.front().x,
           //                 human_obstacle_msg_.obstacles.at(i).polygon.points.front().y);
           int dt = human_obstacle_msg_.obstacles.at(i).polygon.points.front().z;
-          if(obstacles_[j]->isHuman())
+          if(obstacles_[j]->isHuman()) // If the obstacle has already marked as human
           {
             // ROS_INFO("Pred++");
-            if(obstacles_[j]->isHuman() == human_obstacle_msg_.obstacles.at(i).id)
+            if(obstacles_[j]->isHuman() == human_obstacle_msg_.obstacles.at(i).id) // check if the obstacle id is same as this human
             {
               obstacles_[j]->pushBackPrediction(pos);
               // ROS_INFO("Pred++");

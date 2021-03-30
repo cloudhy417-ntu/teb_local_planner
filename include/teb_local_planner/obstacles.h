@@ -214,9 +214,20 @@ public:
   {
     predicted_position_.push_back(position);
   }
-  Eigen::Vector2d getPredictedLocation(double t)
+  Eigen::Vector2d getPredictedLocation(double t) const//return predicted position
   {
-    //Todo: Compute interpolated location by time
+    int discrete_time_step = t/prediction_dt_;
+    if(discrete_time_step >= predicted_position_.size())
+    {
+      Eigen::Vector2d velocity = (predicted_position_.rbegin()[0] - predicted_position_.rbegin()[1])/prediction_dt_;
+      double time_period = t - predicted_position_.size() * prediction_dt_;
+      return predicted_position_.back() + velocity * time_period;
+    }
+    else
+    {
+      double continuous_step = t/prediction_dt_ - discrete_time_step;
+      return (1-continuous_step)*predicted_position_[discrete_time_step] + continuous_step*predicted_position_[discrete_time_step+1];
+    }
   }
   /**
     * @brief Set the 2d velocity (vx, vy) of the obstacle w.r.t to the centroid
@@ -404,7 +415,11 @@ public:
   // implements getMinimumSpatioTemporalDistance() of the base class
   virtual double getMinimumSpatioTemporalDistance(const Eigen::Vector2d& position, double t) const
   {
-    return (pos_ + t*centroid_velocity_ - position).norm();
+    if(!this->isHuman())
+      return (pos_ + t*centroid_velocity_ - position).norm();
+    else{
+      return (this -> getPredictedLocation(t) - position).norm();
+    }
   }
 
   // implements getMinimumSpatioTemporalDistance() of the base class
