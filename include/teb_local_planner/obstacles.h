@@ -189,7 +189,11 @@ public:
     */
   virtual void predictCentroidConstantVelocity(double t, Eigen::Ref<Eigen::Vector2d> position) const
   {
-    position = getCentroid() + t * getCentroidVelocity();
+    if(!this->isHuman())
+      position = getCentroid() + t * getCentroidVelocity();
+    else{
+      position = this -> getPredictedLocation(t);
+    }
   }
 
   /**
@@ -216,8 +220,10 @@ public:
   }
   Eigen::Vector2d getPredictedLocation(double t) const//return predicted position
   {
+    if(predicted_position_.size()==1)
+      return predicted_position_[0];
     int discrete_time_step = t/prediction_dt_;
-    if(discrete_time_step >= predicted_position_.size())
+    if(discrete_time_step >= (predicted_position_.size()-1))
     {
       Eigen::Vector2d velocity = (predicted_position_.rbegin()[0] - predicted_position_.rbegin()[1])/prediction_dt_;
       double time_period = t - predicted_position_.size() * prediction_dt_;
@@ -437,7 +443,11 @@ public:
   // implements predictCentroidConstantVelocity() of the base class
   virtual void predictCentroidConstantVelocity(double t, Eigen::Ref<Eigen::Vector2d> position) const
   {
-    position = pos_ + t*centroid_velocity_;
+    if(!this->isHuman())
+      position = getCentroid() + t * getCentroidVelocity();
+    else{
+      position = this -> getPredictedLocation(t);
+    }
   }
 
   // implements getCentroid() of the base class
@@ -581,7 +591,11 @@ public:
   // implements predictCentroidConstantVelocity() of the base class
   virtual void predictCentroidConstantVelocity(double t, Eigen::Ref<Eigen::Vector2d> position) const
   {
-    position = pos_ + t*centroid_velocity_;
+    if(!this->isHuman())
+      position = getCentroid() + t * getCentroidVelocity();
+    else{
+      position = this -> getPredictedLocation(t);
+    }
   }
 
   // implements getCentroid() of the base class

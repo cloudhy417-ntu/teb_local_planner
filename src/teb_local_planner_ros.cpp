@@ -580,7 +580,7 @@ void TebLocalPlannerROS::updateObstacleContainerWithCustomObstacles()
 void TebLocalPlannerROS::updateObstacleContainerWithHumanObstacles()
 {
   boost::mutex::scoped_lock l(human_obst_mutex_);
-  ROS_INFO("num of human %d", human_obstacle_msg_.obstacles.size());
+  // ROS_INFO("num of human %d", human_obstacle_msg_.obstacles.size());
   if (!human_obstacle_msg_.obstacles.empty())
   {
     Eigen::Affine3d obstacle_to_map_eig;
@@ -600,12 +600,12 @@ void TebLocalPlannerROS::updateObstacleContainerWithHumanObstacles()
       ROS_ERROR("%s",ex.what());
       obstacle_to_map_eig.setIdentity();
     }
-    double_t threshold = 10;
+    double_t threshold = 0.5;
     for (size_t i=0; i<human_obstacle_msg_.obstacles.size(); ++i) // Iterate through all human messages
     {
       Eigen::Vector2d pos(human_obstacle_msg_.obstacles.at(i).polygon.points.front().x,
                           human_obstacle_msg_.obstacles.at(i).polygon.points.front().y);
-
+      // ROS_INFO("x:%lf, y:%lf", pos[0], pos[1]);
       for (size_t j=0; j<obstacles_.size(); ++j) //iterate through all detected obstacle
       {
         if(obstacles_[j]->checkCollision(pos, threshold))// If obstacle is close to some polygon
@@ -619,17 +619,32 @@ void TebLocalPlannerROS::updateObstacleContainerWithHumanObstacles()
             if(obstacles_[j]->isHuman() == human_obstacle_msg_.obstacles.at(i).id) // check if the obstacle id is same as this human
             {
               obstacles_[j]->pushBackPrediction(pos);
+              obstacles_[j]->setDeltaT(human_obstacle_msg_.obstacles.at(i).polygon.points.front().z);
               // ROS_INFO("Pred++");
             }
           }
           else
           {
             obstacles_[j]->setHuman(human_obstacle_msg_.obstacles.at(i).id);
-            ROS_INFO("New Human Obstacle id:%d", obstacles_[j]->isHuman());
+            obstacles_[j]->pushBackPrediction(pos);
+            obstacles_[j]->setDeltaT(human_obstacle_msg_.obstacles.at(i).polygon.points.front().z);
+            // ROS_INFO("New Human Obstacle id:%d", obstacles_[j]->isHuman());
           }
         }
       }
     }
+    // for (size_t j=0; j<obstacles_.size(); ++j) //iterate through all detected obstacle
+    // {
+    //   if(obstacles_[j]->isHuman())
+    //   {
+    //     double dt = 1.0;
+    //     Eigen::Vector2d pos = obstacles_[j]->getPredictedLocation(dt);
+    //     ROS_INFO("Predicted %lfs pos:(%lf,%lf)", dt, pos[0], pos[1]);
+    //     dt = 3.0;
+    //     pos = obstacles_[j]->getPredictedLocation(dt);
+    //     ROS_INFO("Predicted %lfs pos:(%lf,%lf)", dt, pos[0], pos[1]);
+    //   }
+    // }
   }
 }
 
