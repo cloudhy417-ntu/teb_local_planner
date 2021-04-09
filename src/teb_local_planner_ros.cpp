@@ -608,7 +608,8 @@ void TebLocalPlannerROS::updateObstacleContainerWithHumanObstacles()
       // ROS_INFO("x:%lf, y:%lf", pos[0], pos[1]);
       for (size_t j=0; j<obstacles_.size(); ++j) //iterate through all detected obstacle
       {
-        if(obstacles_[j]->checkCollision(pos, threshold))// If obstacle is close to some polygon
+        if(((obstacles_[j]->getCentroid()-pos).norm())<threshold)// If obstacle is close to some polygon
+        // if(obstacles_[j]->checkCollision(pos, threshold))
         {
           // ROS_INFO("Position: (%f, %f)",human_obstacle_msg_.obstacles.at(i).polygon.points.front().x,
           //                 human_obstacle_msg_.obstacles.at(i).polygon.points.front().y);
