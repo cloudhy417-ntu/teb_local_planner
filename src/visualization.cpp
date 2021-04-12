@@ -197,15 +197,24 @@ void TebVisualization::publishObstacles(const ObstContainer& obstacles) const
         end.y = pred[1];
         end.z = cfg_->hcp.visualize_with_time_as_z_axis_scale*t;
         marker.points.push_back(end);
+        if(pobst->isHuman())
+        {
+          marker.color.r = 0.0;
+          marker.color.g = 1.0;
+          marker.color.b = 1.0;
+        }
+        else
+        {
+          marker.color.r = 1.0;
+          marker.color.g = 0.0;
+          marker.color.b = 0.0;
+        }
       }
     }
     
     marker.scale.x = 0.1;
     marker.scale.y = 0.1;
     marker.color.a = 1.0;
-    marker.color.r = 1.0;
-    marker.color.g = 0.0;
-    marker.color.b = 0.0;
 
     teb_marker_pub_.publish( marker );
   }

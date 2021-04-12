@@ -601,18 +601,20 @@ void TebLocalPlannerROS::updateObstacleContainerWithHumanObstacles()
       obstacle_to_map_eig.setIdentity();
     }
     double_t threshold = 0.5;
+    Eigen::Affine2d obstacle_to_map_eig2D = Eigen::Translation2d(obstacle_to_map_eig.translation().topRows<2>()) *
+               obstacle_to_map_eig.linear().topLeftCorner<2,2>();
     for (size_t i=0; i<human_obstacle_msg_.obstacles.size(); ++i) // Iterate through all human messages
     {
       Eigen::Vector2d pos(human_obstacle_msg_.obstacles.at(i).polygon.points.front().x,
                           human_obstacle_msg_.obstacles.at(i).polygon.points.front().y);
+      pos = obstacle_to_map_eig2D * pos;
       // ROS_INFO("x:%lf, y:%lf", pos[0], pos[1]);
       for (size_t j=0; j<obstacles_.size(); ++j) //iterate through all detected obstacle
       {
         if(((obstacles_[j]->getCentroid()-pos).norm())<threshold)// If obstacle is close to some polygon
         // if(obstacles_[j]->checkCollision(pos, threshold))
         {
-          // ROS_INFO("Position: (%f, %f)",human_obstacle_msg_.obstacles.at(i).polygon.points.front().x,
-          //                 human_obstacle_msg_.obstacles.at(i).polygon.points.front().y);
+          // ROS_INFO("Position: (%f, %f)",pos[0],pos[1]);
           int dt = human_obstacle_msg_.obstacles.at(i).polygon.points.front().z;
           if(obstacles_[j]->isHuman()) // If the obstacle has already marked as human
           {

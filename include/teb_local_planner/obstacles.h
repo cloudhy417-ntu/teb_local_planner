@@ -226,6 +226,7 @@ public:
     if(discrete_time_step >= (predicted_position_.size()-1))
     {
       Eigen::Vector2d velocity = (predicted_position_.rbegin()[0] - predicted_position_.rbegin()[1])/prediction_dt_;
+      // ROS_INFO("vel:(%lf, %lf)", velocity[0], velocity[1]);
       double time_period = t - predicted_position_.size() * prediction_dt_;
       return predicted_position_.back() + velocity * time_period;
     }
