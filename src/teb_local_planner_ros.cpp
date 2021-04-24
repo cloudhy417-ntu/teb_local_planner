@@ -600,7 +600,7 @@ void TebLocalPlannerROS::updateObstacleContainerWithHumanObstacles()
       ROS_ERROR("%s",ex.what());
       obstacle_to_map_eig.setIdentity();
     }
-    double_t threshold = 0.5;
+    double_t threshold = 0.6;
     Eigen::Affine2d obstacle_to_map_eig2D = Eigen::Translation2d(obstacle_to_map_eig.translation().topRows<2>()) *
                obstacle_to_map_eig.linear().topLeftCorner<2,2>();
     for (size_t i=0; i<human_obstacle_msg_.obstacles.size(); ++i) // Iterate through all human messages
@@ -611,28 +611,24 @@ void TebLocalPlannerROS::updateObstacleContainerWithHumanObstacles()
       // ROS_INFO("x:%lf, y:%lf", pos[0], pos[1]);
       for (size_t j=0; j<obstacles_.size(); ++j) //iterate through all detected obstacle
       {
+        if(obstacles_[j]->isHuman()) // If the obstacle has already marked as human
+        {
+          // ROS_INFO("Pred++");
+          if(obstacles_[j]->isHuman() == human_obstacle_msg_.obstacles.at(i).id) // check if the obstacle id is same as this human
+          {
+            obstacles_[j]->pushBackPrediction(pos);
+            obstacles_[j]->setDeltaT(human_obstacle_msg_.obstacles.at(i).polygon.points.front().z);
+            // ROS_INFO("Pred++");
+          }
+        }
         if(((obstacles_[j]->getCentroid()-pos).norm())<threshold)// If obstacle is close to some polygon
         // if(obstacles_[j]->checkCollision(pos, threshold))
         {
+          obstacles_[j]->setHuman(human_obstacle_msg_.obstacles.at(i).id);
+          obstacles_[j]->pushBackPrediction(pos);
+          obstacles_[j]->setDeltaT(human_obstacle_msg_.obstacles.at(i).polygon.points.front().z);
           // ROS_INFO("Position: (%f, %f)",pos[0],pos[1]);
           int dt = human_obstacle_msg_.obstacles.at(i).polygon.points.front().z;
-          if(obstacles_[j]->isHuman()) // If the obstacle has already marked as human
-          {
-            // ROS_INFO("Pred++");
-            if(obstacles_[j]->isHuman() == human_obstacle_msg_.obstacles.at(i).id) // check if the obstacle id is same as this human
-            {
-              obstacles_[j]->pushBackPrediction(pos);
-              obstacles_[j]->setDeltaT(human_obstacle_msg_.obstacles.at(i).polygon.points.front().z);
-              // ROS_INFO("Pred++");
-            }
-          }
-          else
-          {
-            obstacles_[j]->setHuman(human_obstacle_msg_.obstacles.at(i).id);
-            obstacles_[j]->pushBackPrediction(pos);
-            obstacles_[j]->setDeltaT(human_obstacle_msg_.obstacles.at(i).polygon.points.front().z);
-            // ROS_INFO("New Human Obstacle id:%d", obstacles_[j]->isHuman());
-          }
         }
       }
     }
