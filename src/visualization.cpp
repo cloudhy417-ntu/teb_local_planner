@@ -377,7 +377,6 @@ void TebVisualization::publishObstacles(const ObstContainer& obstacles) const
         end.x = pred[0];
         end.y = pred[1];
         end.z = cfg_->hcp.visualize_with_time_as_z_axis_scale*t;
-        ROS_INFO("Pub line");
         vis_line_marker.points.push_back(end);
 
         vis_line_marker.scale.x = 0.1;
