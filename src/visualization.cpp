@@ -197,25 +197,14 @@ void TebVisualization::publishObstacles(const ObstContainer& obstacles) const
         end.y = pred[1];
         end.z = cfg_->hcp.visualize_with_time_as_z_axis_scale*t;
         marker.points.push_back(end);
-        if(pobst->isHuman())
-        {
-          marker.color.r = 0.0;
-          marker.color.g = 1.0;
-          marker.color.b = 1.0;
-        }
-        else
-        {
-          marker.color.r = 1.0;
-          marker.color.g = 0.0;
-          marker.color.b = 0.0;
-        }
       }
     }
-    
     marker.scale.x = 0.1;
     marker.scale.y = 0.1;
     marker.color.a = 1.0;
-
+    marker.color.r = 1.0;
+    marker.color.g = 0.0;
+    marker.color.b = 0.0;
     teb_marker_pub_.publish( marker );
   }
   
@@ -296,6 +285,43 @@ void TebVisualization::publishObstacles(const ObstContainer& obstacles) const
         point.z = 0;
         marker.points.push_back(point);
       }
+      if (cfg_->hcp.visualize_with_time_as_z_axis_scale > 0.001)
+      {
+        visualization_msgs::Marker vis_line_marker;
+        vis_line_marker.header.frame_id = cfg_->map_frame;
+        vis_line_marker.header.stamp = ros::Time::now();
+        vis_line_marker.ns = "PointObstacles";
+        vis_line_marker.id = 0;
+        vis_line_marker.action = visualization_msgs::Marker::ADD;
+        vis_line_marker.lifetime = ros::Duration(2.0);
+
+        vis_line_marker.type = visualization_msgs::Marker::LINE_LIST;
+        geometry_msgs::Point start;
+        start.x = pobst->getCentroid()[0];
+        start.y = pobst->getCentroid()[1];
+        start.z = 0;
+        vis_line_marker.points.push_back(start);
+
+        geometry_msgs::Point end;
+        double t = 20;
+        Eigen::Vector2d pred;
+        pobst->predictCentroidConstantVelocity(t, pred);
+        end.x = pred[0];
+        end.y = pred[1];
+        end.z = cfg_->hcp.visualize_with_time_as_z_axis_scale*t;
+        ROS_INFO("Pub line");
+        vis_line_marker.points.push_back(end);
+
+        vis_line_marker.scale.x = 0.1;
+        vis_line_marker.scale.y = 0.1;
+        vis_line_marker.color.a = 1.0;
+        vis_line_marker.color.r = 1.0;
+        vis_line_marker.color.g = 0.0;
+        vis_line_marker.color.b = 0.0;
+
+        teb_marker_pub_.publish( vis_line_marker );  
+      }
+
       marker.scale.x = 0.1;
       marker.scale.y = 0.1;
       marker.color.a = 1.0;
