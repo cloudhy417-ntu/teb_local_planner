@@ -208,6 +208,74 @@ void TebVisualization::publishObstacles(const ObstContainer& obstacles) const
     teb_marker_pub_.publish( marker );
   }
   
+// Visualize circular obstacles
+  {
+    visualization_msgs::Marker marker;
+    marker.header.frame_id = cfg_->map_frame;
+    marker.header.stamp = ros::Time::now();
+    marker.ns = "CircularObstacles";
+    marker.id = 0;
+    marker.type = visualization_msgs::Marker::SPHERE_LIST;
+    marker.action = visualization_msgs::Marker::ADD;
+    marker.lifetime = ros::Duration(2.0);
+    visualization_msgs::Marker LineMarker;
+    double_t radius = 0.3;
+    for (ObstContainer::const_iterator obst = obstacles.begin(); obst != obstacles.end(); ++obst)
+    {
+      boost::shared_ptr<CircularObstacle> pobst = boost::dynamic_pointer_cast<CircularObstacle>(*obst);      
+      if (!pobst)
+        continue;
+      radius = pobst->radius();
+      geometry_msgs::Point point;
+      point.x = pobst->x();
+      point.y = pobst->y();
+      point.z = 0;
+      marker.points.push_back(point);
+
+      if (cfg_->hcp.visualize_with_time_as_z_axis_scale >= 0.001) // Spatiotemporally point obstacles become a line
+      {
+        LineMarker.header.frame_id = cfg_->map_frame;
+        LineMarker.header.stamp = ros::Time::now();
+        LineMarker.ns = "PointObstacles";
+        LineMarker.id = 1;
+        LineMarker.action = visualization_msgs::Marker::ADD;
+        LineMarker.lifetime = ros::Duration(2.0);
+        LineMarker.type = visualization_msgs::Marker::LINE_LIST;
+        geometry_msgs::Point start;
+        start.x = pobst->x();
+        start.y = pobst->y();
+        start.z = 0;
+        LineMarker.points.push_back(start);
+
+        geometry_msgs::Point end;
+        double t = 3.0;
+        Eigen::Vector2d pred;
+        pobst->predictCentroidConstantVelocity(t, pred);
+        end.x = pred[0];
+        end.y = pred[1];
+        end.z = cfg_->hcp.visualize_with_time_as_z_axis_scale*t;
+        LineMarker.points.push_back(end);
+      }
+    }
+    marker.scale.x = radius;
+    marker.scale.y = radius;
+    marker.scale.z = radius;
+    marker.color.r = 0.0;
+    marker.color.g = 1.0;
+    marker.color.b = 0.0;
+    marker.color.a = 1.0;
+    teb_marker_pub_.publish( marker );
+    if (cfg_->hcp.visualize_with_time_as_z_axis_scale >= 0.001){
+      LineMarker.color.r = 1.0;
+      LineMarker.color.g = 0.0;
+      LineMarker.color.b = 0.0;
+      LineMarker.color.a = 1.0;
+      LineMarker.scale.x = 0.1;
+      LineMarker.scale.y = 0.1;
+      teb_marker_pub_.publish( LineMarker );
+    }
+  }
+
   // Visualize line obstacles
   {
     std::size_t idx = 0;

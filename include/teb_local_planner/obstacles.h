@@ -574,7 +574,13 @@ public:
   // implements getMinimumSpatioTemporalDistance() of the base class
   virtual double getMinimumSpatioTemporalDistance(const Eigen::Vector2d& position, double t) const
   {
-    return (pos_ + t*centroid_velocity_ - position).norm() - radius_;
+    if(!this->isHuman()){
+      // ROS_INFO("dist@time%lf:%lf",t,(pos_ + t*centroid_velocity_ - position).norm() - radius_);
+      return (pos_ + t*centroid_velocity_ - position).norm() - radius_;
+    }else{
+      // ROS_INFO("dist@time%lf:%lf",t,(this -> getPredictedLocation(t) - position).norm() - radius_);
+      return (this -> getPredictedLocation(t) - position).norm() - radius_;
+    }
   }
 
   // implements getMinimumSpatioTemporalDistance() of the base class
